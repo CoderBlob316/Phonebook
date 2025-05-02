@@ -59,7 +59,7 @@ public class Phonebook extends JFrame implements ActionListener {
     public Phonebook() {
         setTitle("Phonebook Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 500);
+        setSize(800, 500);git
         setLocationRelativeTo(null);
 
         BackgroundPanel backgroundPanel = new BackgroundPanel("C:\\Users\\babal\\OneDrive\\Pictures\\library bg.jpg");
@@ -140,7 +140,7 @@ public class Phonebook extends JFrame implements ActionListener {
     }
 
     private void addContact() {
-        String name = titleField.getText().trim();
+        String name = nameField.getText().trim();
         String author = authorField.getText().trim();
         String number = numberField.getText().trim();
         if (name.isEmpty() || author.isEmpty() || number.isEmpty()) return;
