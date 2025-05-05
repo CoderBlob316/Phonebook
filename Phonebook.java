@@ -59,7 +59,7 @@ public class Phonebook extends JFrame implements ActionListener {
     public Phonebook() {
         setTitle("Phonebook Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 500);git
+        setSize(800, 500);
         setLocationRelativeTo(null);
 
         BackgroundPanel backgroundPanel = new BackgroundPanel("C:\\Users\\babal\\OneDrive\\Pictures\\library bg.jpg");
