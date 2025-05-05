@@ -59,13 +59,13 @@ public class Phonebook extends JFrame implements ActionListener {
     public Phonebook() {
         setTitle("Phonebook Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 500);git
+        setSize(800, 500);
         setLocationRelativeTo(null);
 
         BackgroundPanel backgroundPanel = new BackgroundPanel("C:\\Users\\babal\\OneDrive\\Pictures\\library bg.jpg");
         backgroundPanel.setLayout(new BorderLayout());
 
-        contactTableModel = new DefaultTableModel(new String[]{"Title", "Author", "Control Number", "Status"}, 0) {
+        contactTableModel = new DefaultTableModel(new String[]{"Name", "Author", "Number", "Status"}, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         contactTable = new JTable(contactTableModel);
