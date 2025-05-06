@@ -1,16 +1,12 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.JTableHeader;
+import javax.swing.table.*;
 
 class Contact {
-    private String name, address, number, status;
+    private String name, address, number;
 
     public Contact(String name, String address, String number) {
         this.name = name;
@@ -21,28 +17,6 @@ class Contact {
     public String getName() { return name; }
     public String getAddress() { return address; }
     public String getNumber() { return number; }
-}
-
-class BackgroundPanel extends JPanel {
-    private Image backgroundImage;
-    
-    public BackgroundPanel(String imagePath) {
-        try {
-            backgroundImage = ImageIO.read(new File(imagePath));
-        } catch (IOException e) {
-            System.out.println("Background image not found.");
-        }
-    }
-
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        if (backgroundImage != null) {
-            g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
-        } else {
-            setBackground(Color.DARK_GRAY);
-        }
-    }
 }
 
 public class Phonebook extends JFrame implements ActionListener {
@@ -58,22 +32,48 @@ public class Phonebook extends JFrame implements ActionListener {
         setSize(800, 500);
         setLocationRelativeTo(null);
 
-        BackgroundPanel backgroundPanel = new BackgroundPanel("C:\\Users\\babal\\OneDrive\\Pictures\\library bg.jpg");
-        backgroundPanel.setLayout(new BorderLayout());
+        // Set global font and look and feel
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            Font uiFont = new Font("Segoe UI", Font.PLAIN, 14);
+            UIManager.put("Button.font", uiFont);
+            UIManager.put("Label.font", uiFont);
+            UIManager.put("TextField.font", uiFont);
+            UIManager.put("Table.font", uiFont);
+            UIManager.put("TableHeader.font", new Font("Segoe UI", Font.BOLD, 14));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(new Color(0xFFF9C4)); // Light yellow background
 
         contactTableModel = new DefaultTableModel(new String[]{"Name", "Address", "Number"}, 0) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         contactTable = new JTable(contactTableModel);
-        contactTable.setForeground(Color.WHITE);
-        contactTable.setBackground(Color.DARK_GRAY);
+        contactTable.setForeground(new Color(0x333333)); // Dark gray text
+        contactTable.setBackground(Color.WHITE);
+        contactTable.setRowHeight(22);
+
+        // Custom header renderer to fix header color
+        JTableHeader header = contactTable.getTableHeader();
+        header.setDefaultRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus,
+                                                           int row, int column) {
+                JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                label.setBackground(new Color(0xFBC02D)); // Mustard yellow
+                label.setForeground(Color.WHITE);
+                label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                label.setOpaque(true);
+                label.setHorizontalAlignment(SwingConstants.CENTER);
+                return label;
+            }
+        });
 
         JScrollPane tableScrollPane = new JScrollPane(contactTable);
-        tableScrollPane.getViewport().setOpaque(false);
-
-        JTableHeader header = contactTable.getTableHeader();
-        header.setBackground(Color.BLACK);
-        header.setForeground(Color.WHITE);
 
         nameField = new JTextField(15);
         addressField = new JTextField(15);
@@ -115,8 +115,8 @@ public class Phonebook extends JFrame implements ActionListener {
         contentPanel.add(actionPanel, BorderLayout.SOUTH);
         contentPanel.add(tableScrollPane, BorderLayout.EAST);
 
-        backgroundPanel.add(contentPanel, BorderLayout.CENTER);
-        setContentPane(backgroundPanel);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        setContentPane(mainPanel);
         setVisible(true);
     }
 
@@ -125,6 +125,10 @@ public class Phonebook extends JFrame implements ActionListener {
         if (e.getSource() == addButton) addContact();
         else if (e.getSource() == searchButton) searchContact();
         else if (e.getSource() == deleteButton) deleteContact();
+        else if (e.getSource() == sortButton) {
+            sortContacts();
+            refreshTable();
+        }
     }
 
     private void addContact() {
@@ -133,7 +137,9 @@ public class Phonebook extends JFrame implements ActionListener {
         String number = numberField.getText().trim();
         if (name.isEmpty() || address.isEmpty() || number.isEmpty()) return;
         for (Contact contact : contacts) {
-            if (contact.getNumber().equals(number) || (contact.getName().equalsIgnoreCase(name) && contact.getAddress().equalsIgnoreCase(address))) return;
+            if (contact.getNumber().equals(number) || 
+                (contact.getName().equalsIgnoreCase(name) && contact.getAddress().equalsIgnoreCase(address)))
+                return;
         }
         contacts.add(new Contact(name, address, number));
         sortContacts();
@@ -162,14 +168,12 @@ public class Phonebook extends JFrame implements ActionListener {
         }
     }
 
-        private void deleteContact() {
+    private void deleteContact() {
         int row = contactTable.getSelectedRow();
         if (row == -1) return;
         contacts.remove(row);
         refreshTable();
     }
-
-   
 
     private void refreshTable() {
         contactTableModel.setRowCount(0);
