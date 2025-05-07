@@ -29,8 +29,6 @@ public class Phonebook extends JFrame implements ActionListener {
     public Phonebook() {
         setTitle("Yellow Pages");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(800, 500);
-        setLocationRelativeTo(null);
 
         // Set global font and look and feel
         try {
@@ -54,9 +52,8 @@ public class Phonebook extends JFrame implements ActionListener {
         contactTable = new JTable(contactTableModel);
         contactTable.setForeground(new Color(0x333333)); // Dark gray text
         contactTable.setBackground(Color.WHITE);
-        contactTable.setRowHeight(22);
+        contactTable.setRowHeight(30); // Increased row height
 
-        // Custom header renderer to fix header color
         JTableHeader header = contactTable.getTableHeader();
         header.setDefaultRenderer(new DefaultTableCellRenderer() {
             @Override
@@ -74,6 +71,7 @@ public class Phonebook extends JFrame implements ActionListener {
         });
 
         JScrollPane tableScrollPane = new JScrollPane(contactTable);
+        tableScrollPane.setPreferredSize(new Dimension(600, 400)); // Optional: Control table size
 
         nameField = new JTextField(15);
         addressField = new JTextField(15);
@@ -101,22 +99,27 @@ public class Phonebook extends JFrame implements ActionListener {
         actionPanel.setOpaque(false);
         actionPanel.add(deleteButton);
         actionPanel.add(sortButton);
-
-        JPanel searchPanel = new JPanel();
-        searchPanel.setOpaque(false);
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
+        actionPanel.add(new JLabel("Search:"));
+        actionPanel.add(searchField);
+        actionPanel.add(searchButton);
 
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setOpaque(false);
         contentPanel.add(inputPanel, BorderLayout.NORTH);
-        contentPanel.add(searchPanel, BorderLayout.CENTER);
         contentPanel.add(actionPanel, BorderLayout.SOUTH);
-        contentPanel.add(tableScrollPane, BorderLayout.EAST);
+
+        // Create a new panel to center the table
+        JPanel tablePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        tablePanel.setOpaque(false);
+        tablePanel.add(tableScrollPane);
+
+        contentPanel.add(tablePanel, BorderLayout.CENTER); // Add the centered table panel
 
         mainPanel.add(contentPanel, BorderLayout.CENTER);
         setContentPane(mainPanel);
+
+        // Maximize the window
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setVisible(true);
     }
 
