@@ -139,11 +139,7 @@ public class Phonebook extends JFrame implements ActionListener {
         String address = addressField.getText().trim();
         String number = numberField.getText().trim();
         if (name.isEmpty() || address.isEmpty() || number.isEmpty()) return;
-        for (Contact contact : contacts) {
-            if (contact.getNumber().equals(number) || 
-                (contact.getName().equalsIgnoreCase(name) && contact.getAddress().equalsIgnoreCase(address)))
-                return;
-        }
+        
         contacts.add(new Contact(name, address, number));
         sortContacts();
         refreshTable();
