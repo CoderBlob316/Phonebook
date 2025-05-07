@@ -143,6 +143,9 @@ public class Phonebook extends JFrame implements ActionListener {
         contacts.add(new Contact(name, address, number));
         sortContacts();
         refreshTable();
+        nameField.setText("");
+        addressField.setText("");
+        numberField.setText("");
     }
 
     private void sortContacts() {
@@ -165,6 +168,7 @@ public class Phonebook extends JFrame implements ActionListener {
                 contactTableModel.addRow(new Object[]{contact.getName(), contact.getAddress(), contact.getNumber()});
             }
         }
+        searchField.setText("");
     }
 
     private void deleteContact() {
