@@ -1,6 +1,7 @@
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.table.*;
@@ -24,13 +25,12 @@ public class Phonebook extends JFrame implements ActionListener {
     private DefaultTableModel contactTableModel;
     private JTable contactTable;
     private JTextField nameField, addressField, numberField, searchField;
-    private JButton addButton, searchButton, deleteButton, sortButton;
+    private JButton addButton, searchButton, deleteButton, sortButton, saveButton, loadButton;
 
     public Phonebook() {
         setTitle("Yellow Pages");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Set global font and look and feel
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             Font uiFont = new Font("Segoe UI", Font.PLAIN, 14);
@@ -44,15 +44,34 @@ public class Phonebook extends JFrame implements ActionListener {
         }
 
         JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBackground(new Color(0xFFF9C4)); // Light yellow background
+        mainPanel.setBackground(new Color(0xFFF9C4)); // Light yellow
 
         contactTableModel = new DefaultTableModel(new String[]{"Name", "Address", "Number"}, 0) {
-            @Override public boolean isCellEditable(int row, int column) { return false; }
+            @Override public boolean isCellEditable(int row, int column) { return true; }
         };
+
         contactTable = new JTable(contactTableModel);
-        contactTable.setForeground(new Color(0x333333)); // Dark gray text
+        contactTable.setForeground(new Color(0x333333));
         contactTable.setBackground(Color.WHITE);
-        contactTable.setRowHeight(30); // Increased row height
+        contactTable.setRowHeight(30);
+
+        contactTableModel.addTableModelListener(e -> {
+            int row = e.getFirstRow();
+            int column = e.getColumn();
+            if (row >= 0 && row < contacts.size() && column >= 0) {
+                String newValue = contactTableModel.getValueAt(row, column).toString().trim();
+                Contact contact = contacts.get(row);
+                String name = contact.getName();
+                String address = contact.getAddress();
+                String number = contact.getNumber();
+                switch (column) {
+                    case 0: name = newValue; break;
+                    case 1: address = newValue; break;
+                    case 2: number = newValue; break;
+                }
+                contacts.set(row, new Contact(name, address, number));
+            }
+        });
 
         JTableHeader header = contactTable.getTableHeader();
         header.setDefaultRenderer(new DefaultTableCellRenderer() {
@@ -61,7 +80,7 @@ public class Phonebook extends JFrame implements ActionListener {
                                                            boolean isSelected, boolean hasFocus,
                                                            int row, int column) {
                 JLabel label = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                label.setBackground(new Color(0xFBC02D)); // Mustard yellow
+                label.setBackground(new Color(0xFBC02D));
                 label.setForeground(Color.WHITE);
                 label.setFont(new Font("Segoe UI", Font.BOLD, 14));
                 label.setOpaque(true);
@@ -71,7 +90,7 @@ public class Phonebook extends JFrame implements ActionListener {
         });
 
         JScrollPane tableScrollPane = new JScrollPane(contactTable);
-        tableScrollPane.setPreferredSize(new Dimension(900, 650)); // Optional: Control table size
+        tableScrollPane.setPreferredSize(new Dimension(900, 650));
 
         nameField = new JTextField(15);
         addressField = new JTextField(15);
@@ -82,11 +101,15 @@ public class Phonebook extends JFrame implements ActionListener {
         searchButton = new JButton("Search");
         deleteButton = new JButton("Delete");
         sortButton = new JButton("Sort by Name");
+        saveButton = new JButton("Save Contacts");
+        loadButton = new JButton("Load Contacts");
 
         addButton.addActionListener(this);
         searchButton.addActionListener(this);
         deleteButton.addActionListener(this);
         sortButton.addActionListener(this);
+        saveButton.addActionListener(this);
+        loadButton.addActionListener(this);
 
         JPanel inputPanel = new JPanel();
         inputPanel.setOpaque(false);
@@ -94,12 +117,13 @@ public class Phonebook extends JFrame implements ActionListener {
         inputPanel.add(new JLabel("Address:")); inputPanel.add(addressField);
         inputPanel.add(new JLabel("Number:")); inputPanel.add(numberField);
         inputPanel.add(addButton);
-        
 
         JPanel actionPanel = new JPanel();
         actionPanel.setOpaque(false);
         actionPanel.add(deleteButton);
         actionPanel.add(sortButton);
+        actionPanel.add(saveButton);
+        actionPanel.add(loadButton);
         actionPanel.add(new JLabel("Search:"));
         actionPanel.add(searchField);
         actionPanel.add(searchButton);
@@ -109,29 +133,31 @@ public class Phonebook extends JFrame implements ActionListener {
         contentPanel.add(inputPanel, BorderLayout.NORTH);
         contentPanel.add(actionPanel, BorderLayout.SOUTH);
 
-        // Create a new panel to center the table
         JPanel tablePanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         tablePanel.setOpaque(false);
         tablePanel.add(tableScrollPane);
 
-        contentPanel.add(tablePanel, BorderLayout.CENTER); // Add the centered table panel
-
+        contentPanel.add(tablePanel, BorderLayout.CENTER);
         mainPanel.add(contentPanel, BorderLayout.CENTER);
         setContentPane(mainPanel);
 
-        // Maximize the window
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == addButton) addContact();
-        else if (e.getSource() == searchButton) searchContact();
-        else if (e.getSource() == deleteButton) deleteContact();
-        else if (e.getSource() == sortButton) {
+        Object source = e.getSource();
+        if (source == addButton) addContact();
+        else if (source == searchButton) searchContact();
+        else if (source == deleteButton) deleteContact();
+        else if (source == sortButton) {
             sortContacts();
             refreshTable();
+        } else if (source == saveButton) {
+            saveContactsToFile();
+        } else if (source == loadButton) {
+            loadContactsFromFile();
         }
     }
 
@@ -140,10 +166,11 @@ public class Phonebook extends JFrame implements ActionListener {
         String address = addressField.getText().trim();
         String number = numberField.getText().trim();
         if (name.isEmpty() || address.isEmpty() || number.isEmpty()) return;
-        
+
         contacts.add(new Contact(name, address, number));
         sortContacts();
         refreshTable();
+
         nameField.setText("");
         addressField.setText("");
         numberField.setText("");
@@ -183,6 +210,39 @@ public class Phonebook extends JFrame implements ActionListener {
         contactTableModel.setRowCount(0);
         for (Contact contact : contacts) {
             contactTableModel.addRow(new Object[]{contact.getName(), contact.getAddress(), contact.getNumber()});
+        }
+    }
+
+    private void saveContactsToFile() {
+        try (PrintWriter writer = new PrintWriter("contacts.csv")) {
+            for (Contact c : contacts) {
+                writer.printf("%s,%s,%s%n", c.getName(), c.getAddress(), c.getNumber());
+            }
+            JOptionPane.showMessageDialog(this, "Contacts saved successfully.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error saving contacts.");
+            e.printStackTrace();
+        }
+    }
+
+    private void loadContactsFromFile() {
+        contacts.clear();
+        try (BufferedReader reader = new BufferedReader(new FileReader("contacts.csv"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",", 3);
+                if (parts.length == 3) {
+                    contacts.add(new Contact(parts[0], parts[1], parts[2]));
+                }
+            }
+            sortContacts();
+            refreshTable();
+            JOptionPane.showMessageDialog(this, "Contacts loaded successfully.");
+        } catch (FileNotFoundException e) {
+            JOptionPane.showMessageDialog(this, "contacts.csv not found.");
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error loading contacts.");
+            e.printStackTrace();
         }
     }
 
