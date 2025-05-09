@@ -71,7 +71,7 @@ public class Phonebook extends JFrame implements ActionListener {
         });
 
         JScrollPane tableScrollPane = new JScrollPane(contactTable);
-        tableScrollPane.setPreferredSize(new Dimension(600, 400)); // Optional: Control table size
+        tableScrollPane.setPreferredSize(new Dimension(900, 650)); // Optional: Control table size
 
         nameField = new JTextField(15);
         addressField = new JTextField(15);
@@ -94,6 +94,7 @@ public class Phonebook extends JFrame implements ActionListener {
         inputPanel.add(new JLabel("Address:")); inputPanel.add(addressField);
         inputPanel.add(new JLabel("Number:")); inputPanel.add(numberField);
         inputPanel.add(addButton);
+        
 
         JPanel actionPanel = new JPanel();
         actionPanel.setOpaque(false);
